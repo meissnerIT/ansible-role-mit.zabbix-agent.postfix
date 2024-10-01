@@ -1,0 +1,11 @@
+# Distributed via ansible - mit.zabbix-agent.postfix
+#
+#11182: Postfix-Überwachung per Zabbix, <markus.meissner@meissner.IT>
+#
+# report once an hour so that the graph displays a understandable unit 
+# (e.g. delivered 12 emails in one hour)
+#
+# v2013-04-10
+
+12 * * * *	zabbix-postfix /usr/local/sbin/zabbix-postfix.sh
+

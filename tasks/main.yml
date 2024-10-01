@@ -1,0 +1,43 @@
+---
+
+# This does not work as of 2017-04-25 / ansible 2.2.2.0
+#- include_role: name=mit.zabbix-agent.common task_from=get-zabbix-agent-path
+- include_tasks: ../../mit.zabbix-agent.common/tasks/get-zabbix-agent-path.yml
+
+# This adds postfix.mailq. We already have mit.mailq and we second it just to have
+# a default trigger (for hosts which use mails for logcheck etc.) and a trigger
+# with a higher severity for postfix email servers
+- name: Add zabbix-agent configuration file
+  copy: src=local-userparameter_postfix.conf
+        dest={{ zabbix_agent_conf_dir }}
+        mode=0644
+  notify: Restart zabbix-agent
+
+- name: Ensure required dependencies
+  apt:
+    pkg: ['logtail', 'pflogsumm']
+
+- name: Ensure zabbix_sender is installed
+  shell: test -f /usr/bin/zabbix_sender
+  changed_when: no
+
+- name: Add user zabbix-postfix
+  user:
+    name: zabbix-postfix
+    system: yes
+    home: /var/lib/zabbix-postfix
+    shell: /bin/false
+    groups: adm
+
+- name: Ensure mail alias zabbix-postfix -> root
+  lineinfile:
+    dest: /etc/aliases
+    regexp: "zabbix-postfix:"
+    line: "zabbix-postfix: root"
+
+- name: Copy /usr/local/sbin/zabbix-postfix.sh
+  copy: src=zabbix-postfix.sh dest=/usr/local/sbin/zabbix-postfix.sh mode=0755
+
+- name: Copy /etc/cron.d/local-zabbix-postfix
+  copy: src=local-zabbix-postfix dest=/etc/cron.d/local-zabbix-postfix
+
