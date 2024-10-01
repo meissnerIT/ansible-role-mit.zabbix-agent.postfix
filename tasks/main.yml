@@ -1,9 +1,5 @@
 ---
 
-# This does not work as of 2017-04-25 / ansible 2.2.2.0
-#- include_role: name=mit.zabbix-agent.common task_from=get-zabbix-agent-path
-- include_tasks: ../../mit.zabbix-agent.common/tasks/get-zabbix-agent-path.yml
-
 # This adds postfix.mailq. We already have mit.mailq and we second it just to have
 # a default trigger (for hosts which use mails for logcheck etc.) and a trigger
 # with a higher severity for postfix email servers
