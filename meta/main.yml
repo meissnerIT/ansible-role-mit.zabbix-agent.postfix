@@ -1,3 +1,4 @@
+# vim: ts=2 sw=2 et ft=yaml.ansible
 ---
 dependencies:
-  - { role: mit.zabbix-agent.common }
+  - role: mit.zabbix-agent.common
