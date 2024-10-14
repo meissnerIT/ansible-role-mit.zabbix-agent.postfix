@@ -1,39 +1,58 @@
+# vim: ts=2 sw=2 et ft=yaml.ansible
 ---
-
-# This adds postfix.mailq. We already have mit.mailq and we second it just to have
-# a default trigger (for hosts which use mails for logcheck etc.) and a trigger
-# with a higher severity for postfix email servers
+# This adds postfix.mailq. We already have mit.mailq and we second it just to
+# have a default trigger (for hosts which use mails for logcheck etc.) and a
+# trigger with a higher severity for postfix email servers
 - name: Add zabbix-agent configuration file
-  copy: src=local-userparameter_postfix.conf
-        dest={{ zabbix_agent_conf_dir }}
-        mode=0644
+  ansible.builtin.copy:
+    src: local-userparameter_postfix.conf
+    dest: '{{ zabbix_agent_conf_dir }}'
+    mode: '0644'
   notify: Restart zabbix-agent
 
 - name: Ensure required dependencies
-  apt:
+  ansible.builtin.apt:
     pkg: ['logtail', 'pflogsumm']
 
 - name: Ensure zabbix_sender is installed
-  shell: test -f /usr/bin/zabbix_sender
-  changed_when: no
+  ansible.builtin.command: test -f /usr/bin/zabbix_sender
+  changed_when: false
 
-- name: Add user zabbix-postfix
-  user:
-    name: zabbix-postfix
-    system: yes
-    home: /var/lib/zabbix-postfix
-    shell: /bin/false
+- name: Add user zabbix
+  ansible.builtin.user:
+    name: zabbix
     groups: adm
+    home: /var/lib/zabbix
+    shell: /bin/false
+    system: true
 
-- name: Ensure mail alias zabbix-postfix -> root
-  lineinfile:
+- name: Ensure mail alias zabbix -> root
+  ansible.builtin.lineinfile:
     dest: /etc/aliases
-    regexp: "zabbix-postfix:"
-    line: "zabbix-postfix: root"
+    line: 'zabbix: root'
+    regexp: '^zabbix'
 
-- name: Copy /usr/local/sbin/zabbix-postfix.sh
-  copy: src=zabbix-postfix.sh dest=/usr/local/sbin/zabbix-postfix.sh mode=0755
+- name: Copy /usr/local/bin/zabbix-postfix.sh
+  ansible.builtin.copy:
+    src: zabbix-postfix.sh
+    dest: /usr/local/bin/
+    mode: '0755'
 
 - name: Copy /etc/cron.d/local-zabbix-postfix
-  copy: src=local-zabbix-postfix dest=/etc/cron.d/local-zabbix-postfix
+  ansible.builtin.copy:
+    src: local-zabbix-postfix
+    dest: /etc/cron.d/
+    mode: '0644'
 
+- name: Remove obsolete user
+  ansible.builtin.user:
+    name: zabbix-postfix
+    state: absent
+
+- name: Remove obsolete files
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - /usr/local/sbin/zabbix-postfix.sh
+    - /var/lib/zabbix-postfix

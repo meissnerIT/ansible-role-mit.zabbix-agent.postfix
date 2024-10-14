@@ -1,7 +1,7 @@
+# vim: ts=2 sw=2 et ft=yaml.ansible
 ---
 # handlers file for zabbix-agent
-
-- name: "Restart zabbix-agent"
-  service: name=zabbix-agent
-           state=restarted
-
+- name: Restart zabbix-agent
+  ansible.builtin.service:
+    name: zabbix-agent
+    state: restarted
